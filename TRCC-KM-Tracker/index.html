@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b0c10" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <title>TRCC BANDIRMA - KM Takip Sistemi V2.0</title>
+    <meta name="description" content="TRCC Bandırma Motosiklet Kulübü Sürüş Takip Merkezi" />
+    <link rel="icon" type="image/png" href="https://turkriders.org/wp-content/uploads/2019/07/Trcc-Logo-300x198.png" />
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+  </head>
+  <body>
+    <!-- Ambient Background -->
+    <div class="ambient-bg"></div>
+    <div class="grid-overlay"></div>
+
+    <div id="app" class="layout-wrapper">
+      <!-- Sidebar Navigation -->
+      <aside class="sidebar">
+        <div class="sidebar-header" style="flex-direction: column; text-align: center; gap: 0.5rem; padding-top: 1.5rem; padding-bottom: 1.5rem;">
+          <img src="https://turkriders.org/wp-content/uploads/2019/07/Trcc-Logo-300x198.png" alt="TRCC Logo" style="width: 110px; filter: drop-shadow(0 0 15px rgba(247,147,30,0.4)); margin-bottom: 0.5rem;" />
+          <span style="color: var(--color-primary); font-size: 0.8rem; letter-spacing: 2px; font-weight: 700; text-transform: uppercase;">BİRİMİZ, HEPİMİZ!</span>
+          <span style="color: var(--text-muted); font-size: 0.7rem; font-style: italic; opacity: 0.8;">"Saygı Göster, Saygı Gör"</span>
+        </div>
+
+        <nav class="sidebar-nav">
+          <ul>
+            <li>
+              <a href="#" class="nav-link active" data-view="dashboard">
+                <i class="ph ph-squares-four"></i>
+                <span>Komuta Merkezi</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="nav-link" data-view="members">
+                <i class="ph ph-users-three"></i>
+                <span>Pilot Kadrosu</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="nav-link" data-view="trips">
+                <i class="ph ph-map-pin-line"></i>
+                <span>Sürüş Kayıtları</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="nav-link" data-view="planner">
+                <i class="ph ph-compass"></i>
+                <span>Rota & Hava Planlayıcı</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="system-status" style="cursor: pointer; transition: 0.3s;" onclick="toggleAdminMode()" id="admin-status-btn">
+            <div class="status-dot" id="admin-dot" style="background: var(--text-muted); box-shadow: none; animation: none;"></div>
+            <span id="admin-text" style="color: var(--text-muted);">Ziyaretçi Modu</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content Area -->
+      <main id="main-content" class="content-area">
+        <!-- Views injected by main.js -->
+      </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="admin-modal" class="modal">
+      <div class="modal-content glass-panel" style="max-width: 400px;">
+        <div class="modal-header">
+          <h2><i class="ph ph-lock-key"></i> Sistem Yetkilendirmesi</h2>
+          <button type="button" class="btn-icon modal-close"><i class="ph ph-x"></i></button>
+        </div>
+        <form id="admin-form">
+          <p style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.85rem;">Sistem verilerini değiştirmek için yönetici parolasını giriniz.</p>
+          <div class="form-group">
+            <label>Erişim Kodu</label>
+            <div class="input-with-icon">
+              <i class="ph ph-password"></i>
+              <input type="password" id="admin-pass" placeholder="Parola" required>
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-outline modal-close">İptal</button>
+            <button type="submit" class="btn btn-primary">Doğrula</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div id="member-modal" class="modal">
+      <div class="modal-content glass-panel">
+        <div class="modal-header">
+          <h2><i class="ph ph-user-plus"></i> Yeni Pilot Ekle</h2>
+          <button type="button" class="btn-icon modal-close"><i class="ph ph-x"></i></button>
+        </div>
+        <form id="member-form">
+          <div class="form-group">
+            <label>Pilot Adı / Lakabı</label>
+            <div class="input-with-icon">
+              <i class="ph ph-user"></i>
+              <input type="text" id="member-name" placeholder="Örn: Dexter" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Motosiklet Modeli (Garaj)</label>
+            <div class="input-with-icon">
+              <i class="ph ph-motorcycle"></i>
+              <input type="text" id="member-bike" placeholder="Örn: Yamaha MT-07, GS1250...">
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-outline modal-close">Vazgeç</button>
+            <button type="submit" class="btn btn-primary">Sisteme Kaydet</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Sürüş Kodu unchanged until member-stats-modal -->
+    <div id="trip-modal" class="modal">
+      <div class="modal-content glass-panel" style="max-width: 600px;">
+        <div class="modal-header">
+          <h2><i class="ph ph-flag-checkered"></i> Yeni Sürüş Görevi</h2>
+          <button type="button" class="btn-icon modal-close"><i class="ph ph-x"></i></button>
+        </div>
+        <form id="trip-form">
+          <div class="form-group">
+            <label>Göreve Katılan Kasklar</label>
+            <div id="trip-member-container" class="checkbox-grid">
+              <!-- Checkboxes injected by JS -->
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group half">
+              <label>Kalkış Noktası</label>
+              <select id="start-city" required><option value="">İl Seçin</option></select>
+              <select id="start-dist" required disabled style="margin-top: 0.5rem;"><option value="">İlçe Seçin</option></select>
+            </div>
+            <div class="form-group half">
+              <label>Varış Noktası</label>
+              <select id="end-city" required><option value="">İl Seçin</option></select>
+              <select id="end-dist" required disabled style="margin-top: 0.5rem;"><option value="">İlçe Seçin</option></select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Görevin Detayı (Opsiyonel)</label>
+            <div class="input-with-icon">
+              <i class="ph ph-text-align-left"></i>
+              <input type="text" id="trip-desc" placeholder="Örn: Hafta Sonu Sürüşü">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group half">
+              <label>Toplam Kat Edilen Mesafe</label>
+              <div class="input-with-icon">
+                <i class="ph ph-gauge"></i>
+                <input type="number" id="trip-km" placeholder="0" required>
+                <span class="input-suffix">KM</span>
+              </div>
+            </div>
+            <div class="form-group half">
+              <label>Operasyon Tarihi</label>
+              <div class="input-with-icon">
+                <i class="ph ph-calendar-blank"></i>
+                <input type="date" id="trip-date" required>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn btn-outline modal-close">Görevi İptal Et</button>
+            <button type="submit" class="btn btn-primary">Görevi İşle</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="member-stats-modal" class="modal">
+      <div class="modal-content glass-panel" style="max-width: 800px;">
+        <div class="modal-header">
+          <div class="pilot-badge-header">
+            <div class="pilot-avatar"><i class="ph-fill ph-user"></i></div>
+            <div class="pilot-info">
+              <h2 id="ms-name" class="cyber-text">Pilot Adı</h2>
+              <div style="display:flex; gap:0.5rem; margin-top: 0.2rem;">
+                <div id="ms-rank" class="rank-badge">Rütbe</div>
+                <div id="ms-bike" class="rank-badge" style="background:rgba(255,255,255,0.05); border-color:rgba(255,255,255,0.1); color:#ccc;">
+                  <i class="ph ph-motorcycle"></i> <span>Bilinmiyor</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="btn-icon modal-close"><i class="ph ph-x"></i></button>
+        </div>
+        
+        <div class="cyber-stats-grid">
+          <div class="cyber-stat-card">
+            <div class="cyber-stat-icon"><i class="ph ph-gauge"></i></div>
+            <div class="cyber-stat-content">
+              <p>Ömür Boyu Mesafe</p>
+              <div id="ms-total-km" class="cyber-stat-value">0 KM</div>
+            </div>
+          </div>
+          <div class="cyber-stat-card">
+            <div class="cyber-stat-icon" style="color: var(--color-cyan);"><i class="ph ph-flag"></i></div>
+            <div class="cyber-stat-content">
+              <p>Tamamlanan Görev</p>
+              <div id="ms-total-trips" class="cyber-stat-value">0</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-panel inner-panel">
+          <div class="panel-heading">
+            <i class="ph ph-trend-up"></i>
+            <h3>Performans Analizi</h3>
+          </div>
+          <canvas id="memberTrendChart" height="180"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
