@@ -1,4 +1,3 @@
-import './style.css'
 
 if (!sessionStorage.getItem('v3_reset_trigger')) {
   sessionStorage.setItem('v3_reset_trigger', 'true');
